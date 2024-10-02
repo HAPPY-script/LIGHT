@@ -1,0 +1,130 @@
+local player = game.Players.LocalPlayer
+local lighting = game:GetService("Lighting")
+
+-- Tạo GUI
+local gui = Instance.new("ScreenGui", player:WaitForChild("PlayerGui"))
+
+-- Tạo menu nhập key
+local keyFrame = Instance.new("Frame", gui)
+keyFrame.Size = UDim2.new(0, 300, 0, 150)
+keyFrame.Position = UDim2.new(0.5, -150, 0.5, -75)
+keyFrame.BackgroundColor3 = Color3.new(1, 1, 0)  -- Màu nền vàng
+keyFrame.BorderSizePixel = 0
+
+local keyBox = Instance.new("TextBox", keyFrame)
+keyBox.Size = UDim2.new(0, 280, 0, 50)
+keyBox.Position = UDim2.new(0.5, -140, 0.2, 0)
+keyBox.PlaceholderText = "Nhập key ở đây"
+keyBox.TextScaled = true
+
+local submitButton = Instance.new("TextButton", keyFrame)
+submitButton.Size = UDim2.new(0, 100, 0, 50)
+submitButton.Position = UDim2.new(0.5, -50, 0.6, 0)
+submitButton.Text = "Xác Nhận"
+submitButton.BackgroundColor3 = Color3.new(0, 0.8, 0)  -- Màu xanh
+
+local errorLabel = Instance.new("TextLabel", keyFrame)
+errorLabel.Size = UDim2.new(1, 0, 0.2, 0)
+errorLabel.Position = UDim2.new(0, 0, 0.85, 0)
+errorLabel.TextColor3 = Color3.new(1, 0, 0)
+errorLabel.TextScaled = true
+errorLabel.Text = ""
+
+-- Tạo menu chính (ẩn đi khi chưa nhập key)
+local frame = Instance.new("Frame", gui)
+frame.Size = UDim2.new(0, 200, 0, 100)
+frame.Position = UDim2.new(0.5, -100, 0.5, -50)
+frame.BackgroundColor3 = Color3.new(1, 1, 0)  -- Màu nền vàng
+frame.BorderSizePixel = 0
+frame.Visible = false  -- Ẩn menu chính khi chưa nhập key đúng
+
+-- Tạo nút bật/tắt
+local toggleButton = Instance.new("TextButton", frame)
+toggleButton.Size = UDim2.new(0, 100, 0, 50)
+toggleButton.Position = UDim2.new(0.25, 0, 0.25, 0)
+toggleButton.Text = "🔦"
+toggleButton.BackgroundColor3 = Color3.new(0.7, 0.7, 0.7)  -- Màu xám
+toggleButton.TextColor3 = Color3.new(1, 1, 1)
+
+-- Tạo nút xóa
+local deleteButton = Instance.new("TextButton", frame)
+deleteButton.Size = UDim2.new(0, 20, 0, 20)
+deleteButton.Position = UDim2.new(0, 0, 0, 0)
+deleteButton.Text = "X"
+deleteButton.BackgroundColor3 = Color3.new(1, 0, 0)
+deleteButton.TextColor3 = Color3.new(1, 1, 1)
+
+-- Biến để theo dõi trạng thái bật/tắt
+local isLightEnabled = false
+
+-- Xử lý khi nhấn nút bật/tắt
+toggleButton.MouseButton1Click:Connect(function()
+    isLightEnabled = not isLightEnabled
+    if isLightEnabled then
+        -- Khi bật, chỉnh ánh sáng để nhìn rõ như ban ngày
+        lighting.Brightness = 77
+        lighting.Ambient = Color3.new(1, 1, 1)
+        lighting.FogEnd = 1e6
+        toggleButton.Text = "🔦💡"
+        toggleButton.BackgroundColor3 = Color3.new(0, 0.8, 0)  -- Màu xanh khi bật
+    else
+        -- Khi tắt, đưa ánh sáng về trạng thái bình thường
+        lighting.Brightness = 1
+        lighting.Ambient = Color3.new(0.5, 0.5, 0.5)
+        lighting.FogEnd = 1000
+        toggleButton.Text = "🔦"
+        toggleButton.BackgroundColor3 = Color3.new(0.7, 0.7, 0.7)  -- Màu xám khi tắt
+    end
+end)
+
+-- Xử lý khi nhấn nút xóa
+deleteButton.MouseButton1Click:Connect(function()
+    frame:Destroy()  -- Xóa menu chính
+end)
+
+-- Tính năng di chuyển menu chính bằng chuột
+local dragging
+local dragInput
+local dragStart
+local startPos
+
+local function updateInput(input)
+    local delta = input.Position - dragStart
+    frame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+end
+
+frame.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        dragging = true
+        dragStart = input.Position
+        startPos = frame.Position
+        
+        input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then
+                dragging = false
+            end
+        end)
+    end
+end)
+
+frame.InputChanged:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseMovement then
+        dragInput = input
+    end
+end)
+
+game:GetService("UserInputService").InputChanged:Connect(function(input)
+    if dragging and input == dragInput then
+        updateInput(input)
+    end
+end)
+
+-- Xử lý khi nhập key
+submitButton.MouseButton1Click:Connect(function()
+    if keyBox.Text == "HAPPY_FAMILY" then
+        keyFrame:Destroy()  -- Xóa menu nhập key
+        frame.Visible = true  -- Hiển thị menu chính khi nhập đúng key
+    else
+        errorLabel.Text = "Key không đúng!"
+    end
+end)
