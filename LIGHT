@@ -62,7 +62,7 @@ toggleButton.MouseButton1Click:Connect(function()
     isLightEnabled = not isLightEnabled
     if isLightEnabled then
         -- Khi bật, chỉnh ánh sáng để nhìn rõ như ban ngày
-        lighting.Brightness = 77
+        lighting.Brightness = 100
         lighting.Ambient = Color3.new(1, 1, 1)
         lighting.FogEnd = 1e6
         toggleButton.Text = "🔦💡"
